@@ -1,0 +1,8 @@
+{
+  "_说明": "复制本文件为 config.json 后填入自己的密钥；config.json 已被 .gitignore 排除，不会上传",
+  "baidu_api_key": "在此填入百度智能云 API Key",
+  "baidu_secret_key": "在此填入百度智能云 Secret Key",
+  "chat_api_base": "https://api.deepseek.com/v1",
+  "chat_api_key": "在此填入 DeepSeek API Key",
+  "chat_model": "deepseek-chat"
+}

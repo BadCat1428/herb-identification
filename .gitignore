@@ -1,0 +1,27 @@
+# 密钥与本地配置（绝不提交）
+config.json
+threshold.json
+mode.json
+offline_error.log
+
+# 构建产物
+build/
+dist/
+*.spec
+*.exe
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# 打包缓存
+*.tflite.bak

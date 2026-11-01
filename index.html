@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能中草药识别系统</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --border: #e9e9e7;
+    --text: #37352f;
+    --muted: #9b9a97;
+    --green: #0d9373;
+    --green-hover: #0a7a5f;
+    --green-light: #e6f3ef;
+    --blue: #337ea9;
+    --red: #eb5757;
+    --orange: #d9730d;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    overflow: hidden;
+  }
+
+  /* ---------- scrollbar ---------- */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #dcdcda; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #c8c8c6; }
+
+  /* ---------- layout ---------- */
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 14px 16px 16px;
+    gap: 14px;
+  }
+
+  /* ---------- top bar ---------- */
+  header {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    flex-shrink: 0;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--green);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .brand-text .title { font-size: 15px; font-weight: 700; line-height: 1.3; }
+  .brand-text .subtitle { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+  .mode-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--green-light);
+    color: var(--green);
+    border: none;
+    border-radius: 999px;
+    padding: 6px 30px 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    transition: 0.2s;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%230d9373' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+  .mode-select:hover { background-color: #d9ece5; }
+
+  /* ---------- main grid ---------- */
+  main {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+  }
+  @media (max-width: 860px) {
+    main { grid-template-columns: 1fr; overflow-y: auto; }
+    body { overflow: auto; }
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+
+  /* ---------- left card: image ---------- */
+  .preview {
+    height: 220px;
+    border-radius: 8px;
+    background: #f7f7f5;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .preview .empty { color: var(--muted); font-size: 12px; }
+  .preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    animation: fadeIn 0.35s ease;
+  }
+  .file-name {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 15px;
+    flex-shrink: 0;
+  }
+  .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-shrink: 0; }
+  .btn {
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: 0.2s;
+    flex: 1;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--green); color: #fff; }
+  .btn-primary:hover { background: var(--green-hover); }
+  .btn-secondary { background: #f1f1ef; color: var(--red); }
+  .btn-secondary:hover { background: #e8e8e5; }
+
+  .threshold-block { margin-top: 14px; flex-shrink: 0; }
+  .threshold-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .threshold-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .threshold-value { font-size: 12px; color: var(--text); font-weight: 600; }
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--green);
+    cursor: pointer;
+  }
+
+  /* ---------- right card: result ---------- */
+  .card-result { overflow: hidden; }
+  .result-scroll { overflow-y: auto; flex: 1; min-height: 0; padding-right: 4px; }
+  .result-empty {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .result-source { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .result-warn {
+    background: #fdf3e7;
+    color: var(--orange);
+    font-size: 12px;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+  }
+  .item {
+    border-top: 1px solid var(--border);
+    padding: 10px 0;
+    animation: fadeUp 0.4s ease both;
+  }
+  .item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    cursor: pointer;
+  }
+  .item-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .item-score { font-size: 12px; color: var(--muted); flex-shrink: 0; margin-left: 12px; }
+  .item-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 6px;
+    display: none;
+  }
+  .item.open .item-desc { display: block; }
+  .item-link {
+    font-size: 12px;
+    color: var(--blue);
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .item-link:hover { text-decoration: underline; }
+  .result-hint {
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+  .result-error {
+    background: #fdeeee;
+    color: var(--red);
+    font-size: 12px;
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+
+  /* ---------- QA card ---------- */
+  .card-qa { height: 240px; flex-shrink: 0; }
+  .qa-messages {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-right: 4px;
+  }
+  .qa-empty {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .msg { margin-bottom: 10px; animation: fadeIn 0.3s ease; }
+  .msg-sender { font-size: 11px; font-weight: 700; margin-bottom: 2px; }
+  .msg-sender.you { color: var(--blue); }
+  .msg-sender.bot { color: var(--green); }
+  .msg-body { font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .typing { display: inline-flex; gap: 4px; padding: 6px 0; }
+  .typing span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #c9c9c7;
+    animation: bounce 1s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  .qa-input-row { display: flex; gap: 8px; margin-top: 10px; flex-shrink: 0; }
+  #qaInput {
+    flex: 1;
+    background: #f7f7f5;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+    transition: 0.2s;
+  }
+  #qaInput:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 2px rgba(13,147,115,0.15);
+  }
+  #qaSend { flex: none; width: 84px; }
+  #qaSend:disabled { opacity: 0.6; cursor: default; }
+
+  /* ---------- animations ---------- */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- loading overlay ---------- */
+  #loading {
+    position: fixed;
+    inset: 0;
+    background: #ffffff;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    transition: opacity 0.4s ease;
+  }
+  #loading.hide { opacity: 0; pointer-events: none; }
+  #loading .logo {
+    width: 56px; height: 56px;
+    font-size: 26px;
+    border-radius: 14px;
+    animation: breathe 2s infinite ease-in-out;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+  #loading .l-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  #loading .l-status { font-size: 12px; color: var(--muted); }
+  .l-track {
+    width: 220px; height: 4px;
+    background: #eeeeec;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .l-bar {
+    position: absolute;
+    top: 0; left: 0;
+    width: 60px; height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    animation: slide 1.4s infinite ease-in-out;
+  }
+  @keyframes slide {
+    0% { left: -60px; }
+    100% { left: 220px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo">药</div>
+  <div class="l-title">智能中草药识别系统</div>
+  <div class="l-status">正在初始化引擎...</div>
+  <div class="l-track"><div class="l-bar"></div></div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="brand">
+      <div class="logo">药</div>
+      <div class="brand-text">
+        <div class="title">智能中草药识别系统</div>
+        <div class="subtitle">在线 / 离线识别 · 百科 · AI 问答</div>
+      </div>
+    </div>
+    <select id="modeSelect" class="mode-select" title="识别模式">
+      <option value="自动">自动</option>
+      <option value="在线">在线</option>
+      <option value="离线">离线</option>
+    </select>
+  </header>
+
+  <main>
+    <!-- left: image -->
+    <div class="card">
+      <div class="card-title">图像</div>
+      <div class="preview" id="preview">
+        <span class="empty">尚未选择图片</span>
+      </div>
+      <div class="file-name" id="fileName"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="pickBtn">选择图片</button>
+        <button class="btn btn-secondary" id="clearBtn">清除</button>
+      </div>
+      <div class="threshold-block">
+        <div class="threshold-head">
+          <span class="threshold-label">离线阈值</span>
+          <span class="threshold-value" id="thresholdValue">0.50</span>
+        </div>
+        <input type="range" id="thresholdRange" min="0.05" max="0.95" step="0.05" value="0.5">
+      </div>
+    </div>
+
+    <!-- right: result -->
+    <div class="card card-result">
+      <div class="card-title">识别结果</div>
+      <div class="result-scroll" id="resultArea">
+        <div class="result-empty">识别结果将显示在这里</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- bottom: QA -->
+  <div class="card card-qa">
+    <div class="card-title">智能问答</div>
+    <div class="qa-messages" id="qaMessages">
+      <div class="qa-empty" id="qaEmpty">识别出药材后，可以在这里向 AI 助手提问</div>
+    </div>
+    <div class="qa-input-row">
+      <input type="text" id="qaInput" placeholder="输入问题，例如：这种药材有什么功效？" autocomplete="off">
+      <button class="btn btn-primary" id="qaSend">发送</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var api = null;
+  var threshold = 0.5;
+  var lastTop1 = '';
+  var recognizing = false;
+  var asking = false;
+
+  // ---------- helpers ----------
+  function $(id) { return document.getElementById(id); }
+
+  function getApi() {
+    try {
+      if (window.pywebview && window.pywebview.api) return window.pywebview.api;
+    } catch (e) { /* not ready */ }
+    return null;
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function pct(v) {
+    var n = Number(v);
+    if (isNaN(n)) return '--';
+    return Math.round(n * 100) + '%';
+  }
+
+  function showErrorInResult(msg) {
+    var area = $('resultArea');
+    area.innerHTML = '<div class="result-error">' + esc(msg) + '</div>';
+  }
+
+  function setBusy(busy) {
+    recognizing = busy;
+    $('pickBtn').disabled = busy;
+    $('pickBtn').textContent = busy ? '识别中...' : '选择图片';
+  }
+
+  // ---------- init ----------
+  function hideLoading() {
+    var el = $('loading');
+    if (!el || el.classList.contains('hide')) return;
+    el.classList.add('hide');
+    setTimeout(function () { el.style.display = 'none'; }, 450);
+  }
+
+  function waitForApi(timeoutMs) {
+    return new Promise(function (resolve, reject) {
+      var start = Date.now();
+      (function poll() {
+        var a = getApi();
+        if (a) { resolve(a); return; }
+        if (Date.now() - start > (timeoutMs || 30000)) {
+          reject(new Error('等待后端接口超时'));
+          return;
+        }
+        setTimeout(poll, 120);
+      })();
+    });
+  }
+
+  function init() {
+    waitForApi(60000).then(function (a) {
+      api = a;
+      return api.init().then(function (res) {
+        if (res && typeof res.threshold === 'number') {
+          threshold = res.threshold;
+          $('thresholdRange').value = threshold;
+          $('thresholdValue').textContent = Number(threshold).toFixed(2);
+        }
+        if (res && res.mode) {
+          $('modeSelect').value = res.mode;
+        }
+        hideLoading();
+        if (res && res.ok === false) {
+          showErrorInResult(res.error || '初始化失败');
+        }
+      });
+    }).catch(function (err) {
+      hideLoading();
+      showErrorInResult('初始化失败：' + (err && err.message ? err.message : err));
+    });
+  }
+
+  // ---------- recognize ----------
+  function pickAndRecognize() {
+    if (recognizing) return;
+    var a = getApi();
+    if (!a) { showErrorInResult('后端接口未就绪'); return; }
+    setBusy(true);
+    a.pick_and_recognize().then(function (res) {
+      setBusy(false);
+      if (!res) { showErrorInResult('未收到识别结果'); return; }
+      if (res.canceled) return;
+      if (res.ok === false) { showErrorInResult(res.error || '识别失败'); return; }
+      renderResult(res);
+    }).catch(function (err) {
+      setBusy(false);
+      showErrorInResult('识别失败：' + (err && err.message ? err.message : err));
+    });
+  }
+
+  function renderResult(res) {
+    lastTop1 = res.top1 || '';
+    var area = $('resultArea');
+    var html = '';
+
+    if (res.preview) {
+      var pv = $('preview');
+      pv.innerHTML = '';
+      var img = document.createElement('img');
+      img.src = res.preview;
+      pv.appendChild(img);
+    }
+    $('fileName').textContent = res.path || '';
+
+    if (res.mode_used) {
+      html += '<div class="result-source">来源：' + esc(res.mode_used) + '</div>';
+    }
+    var warn = res.items && res.items.length && typeof res.items[0].score === 'number' && res.items[0].score < threshold;
+    if (warn) {
+      html += '<div class="result-warn">最高置信度低于阈值，结果仅供参考</div>';
+    }
+    if (!res.items || !res.items.length) {
+      html += '<div class="result-empty">未识别到结果</div>';
+    } else {
+      res.items.forEach(function (it, i) {
+        var desc = it.desc ? '<div class="item-desc">' + esc(it.desc) + '</div>' : '';
+        var link = it.url
+          ? '<a class="item-link" data-url="' + esc(it.url) + '">查看百科词条</a>'
+          : '';
+        html += '<div class="item" style="animation-delay:' + (i * 80) + 'ms">'
+          + '<div class="item-head">'
+          + '<span class="item-name">' + esc(it.name) + '</span>'
+          + '<span class="item-score">' + pct(it.score) + '</span>'
+          + '</div>'
+          + desc + link + '</div>';
+      });
+    }
+    if (res.top1) {
+      html += '<div class="result-hint">已识别：' + esc(res.top1) + '，可直接在下方提问</div>';
+    }
+    area.innerHTML = html;
+
+    // item interactions
+    var heads = area.querySelectorAll('.item-head');
+    Array.prototype.forEach.call(heads, function (h) {
+      h.addEventListener('click', function () {
+        h.parentNode.classList.toggle('open');
+      });
+    });
+    var links = area.querySelectorAll('.item-link');
+    Array.prototype.forEach.call(links, function (l) {
+      l.addEventListener('click', function () {
+        var a = getApi();
+        if (!a || !a.open_link) return;
+        try { a.open_link(l.getAttribute('data-url')); } catch (e) { /* ignore */ }
+      });
+    });
+  }
+
+  // ---------- QA ----------
+  function addMsg(sender, text) {
+    var empty = $('qaEmpty');
+    if (empty) empty.remove();
+    var box = $('qaMessages');
+    var div = document.createElement('div');
+    div.className = 'msg';
+    var s = document.createElement('div');
+    s.className = 'msg-sender ' + (sender === '你' ? 'you' : 'bot');
+    s.textContent = sender;
+    var b = document.createElement('div');
+    b.className = 'msg-body';
+    b.textContent = text;
+    div.appendChild(s);
+    div.appendChild(b);
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+    return b;
+  }
+
+  function showTyping() {
+    var box = $('qaMessages');
+    var div = document.createElement('div');
+    div.className = 'msg';
+    div.id = 'typingMsg';
+    div.innerHTML = '<div class="msg-sender bot">助手</div>'
+      + '<div class="typing"><span></span><span></span><span></span></div>';
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+  function removeTyping() {
+    var t = $('typingMsg');
+    if (t) t.remove();
+  }
+
+  function ask() {
+    if (asking) return;
+    var input = $('qaInput');
+    var q = input.value.trim();
+    if (!q) return;
+    var a = getApi();
+    if (!a || !a.ask) { addMsg('助手', '后端接口未就绪，无法提问。'); return; }
+    asking = true;
+    $('qaSend').disabled = true;
+    input.value = '';
+    addMsg('你', q);
+    showTyping();
+    a.ask(q).then(function (res) {
+      removeTyping();
+      asking = false;
+      $('qaSend').disabled = false;
+      if (res && res.ok) {
+        addMsg('助手', res.answer || '');
+      } else {
+        addMsg('助手', '抱歉，出错了：' + ((res && res.error) || '未知错误'));
+      }
+    }).catch(function (err) {
+      removeTyping();
+      asking = false;
+      $('qaSend').disabled = false;
+      addMsg('助手', '抱歉，出错了：' + (err && err.message ? err.message : err));
+    });
+  }
+
+  // ---------- events ----------
+  function bind() {
+    $('pickBtn').addEventListener('click', pickAndRecognize);
+
+    $('clearBtn').addEventListener('click', function () {
+      $('preview').innerHTML = '<span class="empty">尚未选择图片</span>';
+      $('fileName').textContent = '';
+      $('resultArea').innerHTML = '<div class="result-empty">识别结果将显示在这里</div>';
+      lastTop1 = '';
+    });
+
+    $('modeSelect').addEventListener('change', function () {
+      var a = getApi();
+      if (!a || !a.set_mode) return;
+      try { a.set_mode(this.value); } catch (e) { /* fire-and-forget */ }
+    });
+
+    var range = $('thresholdRange');
+    range.addEventListener('input', function () {
+      threshold = parseFloat(this.value);
+      $('thresholdValue').textContent = threshold.toFixed(2);
+    });
+    range.addEventListener('change', function () {
+      var a = getApi();
+      if (!a || !a.set_threshold) return;
+      try { a.set_threshold(threshold); } catch (e) { /* fire-and-forget */ }
+    });
+
+    $('qaSend').addEventListener('click', ask);
+    $('qaInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') ask();
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { bind(); init(); });
+  } else {
+    bind();
+    init();
+  }
+  window.addEventListener('pywebviewready', function () {
+    if (!api) init();
+  });
+})();
+</script>
+</body>
+</html>
