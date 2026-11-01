@@ -23,10 +23,13 @@
 
 ### 方式一：直接运行 exe（推荐给普通用户）
 
-下载 Release 中的 `中草药识别.exe`，双击运行，无需安装 Python。
+**[⬇ 下载最新版](https://github.com/BadCat1428/herb-identification/releases/latest)**
+
+双击运行，无需安装 Python。
 
 - 首次启动约 5~10 秒（加载离线模型，非卡死）
 - 需要 64 位 Windows 10/11
+- **纯离线模式开箱即用**，无需任何配置
 
 ### 方式二：源码运行
 
