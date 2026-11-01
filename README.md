@@ -4,6 +4,8 @@
 
 > 本项目为中小学计算思维类参赛作品，代码开源以便评审。
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 ---
 
 ## 功能特性
@@ -147,3 +149,18 @@ pyinstaller build.spec --noconfirm --clean
 ## 免责声明
 
 本项目为学习与技术验证用途，识别结果不构成任何医学建议。
+---
+
+## 许可证
+
+本项目采用 **GNU General Public License v3.0** 授权。
+
+Copyright (C) 2026 BadCat1428
+
+本程序是自由软件：你可以依据自由软件基金会发布的 GNU 通用公共许可证第 3 版（或你选择的任何更新版本）条款，重新分发和/或修改它。
+
+本程序分发时希望它有用，但**不提供任何担保**，甚至不包含适销性或特定用途适用性的默示担保。详见 GNU 通用公共许可证。
+
+你应该已随本程序收到一份 GNU 通用公共许可证副本；如果没有，请访问 <https://www.gnu.org/licenses/>。
+
+完整许可证文本见 [LICENSE](LICENSE)。

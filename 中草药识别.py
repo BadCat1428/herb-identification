@@ -2,6 +2,21 @@
 """智能中草药识别系统（pywebview 前后端分离版）
 识别/问答/配置逻辑与原 tkinter 版完全一致，仅将界面改为前端 index.html，
 通过 pywebview 的 js_api 与前端通信。
+
+Copyright (C) 2026 BadCat1428
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import requests
 import base64
